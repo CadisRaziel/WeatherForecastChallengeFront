@@ -1,32 +1,38 @@
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import SignIn from './pages/auth/signin';
 import RegisterNewAccount from './pages/auth/register_new_account';
+import Dashboard from './pages/dashboard/dashboard';
+import { UseAuth } from './services/context/auth';
 
 
-// Defina os tipos de rotas conhecidas (opcional)
 export type KnownRoute = '/' | '/register' | '/dashboard';
 
 export function MainRouter() {
-  const isAuthenticated = false; // Mude essa lógica para a autenticação real
+  const auth = UseAuth();
+  switch (auth.authResponse) {
+    case null:
+      return <AuthRouter />;
+    default:
+      return <AuthenticatedRouter />;
+  }
 
-  return (
-    <Router>
+
+  function AuthRouter() {
+    return (
       <Routes>
-        {/* Rotas públicas */}
-        {!isAuthenticated ? (
-          <>
-            <Route path="/" element={<SignIn />} />
-            <Route path="/register" element={<RegisterNewAccount />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </>
-        ) : (
-          // Rotas autenticadas
-          <>
-            {/* <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} /> */}
-          </>
-        )}
+        <Route path="/" element={<SignIn />} />
+        <Route path="/register" element={<RegisterNewAccount />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </Router>
-  );
+    );
+  }
+
+  function AuthenticatedRouter() {
+    return (
+      <Routes>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    );
+  }
 }

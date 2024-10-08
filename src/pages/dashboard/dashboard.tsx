@@ -2,14 +2,20 @@ import React, { useState } from 'react';
 import { useWeatherForecastController } from '../../controller/Forecast/weatherForecast_one_day_controller';
 import { useWeatherForecastControllerFiveDays } from '../../controller/Forecast/weatherForecast_five_days_controller';
 import { format } from 'date-fns/format';
+import { addFavoriteCitiesController } from '../../controller/FavoriteCities/add_favorite_cities_controller';
+import { useFavoriteCitiesController } from '../../controller/FavoriteCities/list_favorite_cities_controller';
+import { useAlert } from '../../components/alert';
+import { AiFillDelete } from 'react-icons/ai';
 
 export default function Dashboard() {
     const [city, setCity] = useState<string>('');
     const [forecastType, setForecastType] = useState<'oneDay' | 'fiveDays'>('oneDay');
 
-    
     const { weatherData, loading, error, getWeatherForecast } = useWeatherForecastController();
     const { weatherDataFiveDays, loading: loadingFiveDays, error: errorFiveDays, getWeatherForecastFiveDays } = useWeatherForecastControllerFiveDays();
+    const { addCityToFavorites, loading: addingFavorite, error: favoriteError } = addFavoriteCitiesController();
+    const { loading: loadingFavorites, error: errorFavorites, favoriteCities, fetchFavoriteCities, removeCityFromFavorites } = useFavoriteCitiesController();
+    const { showAlert } = useAlert();
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setCity(event.target.value);
@@ -19,9 +25,9 @@ export default function Dashboard() {
         event.preventDefault();
         if (city) {
             if (forecastType === 'oneDay') {
-                await getWeatherForecast(city); 
+                await getWeatherForecast(city);
             } else {
-                await getWeatherForecastFiveDays(city); 
+                await getWeatherForecastFiveDays(city);
             }
         }
     };
@@ -30,82 +36,134 @@ export default function Dashboard() {
         setForecastType(event.target.value as 'oneDay' | 'fiveDays');
     };
 
+    const handleFavoriteClick = async () => {
+        if (city) {
+            await addCityToFavorites(city);
+            await fetchFavoriteCities();
+            showAlert(['Cidade adicionada com sucesso!'], 'success');
+            setCity('');
+        }
+    };
+
+    const handleRemoveFavorite = async (cityName: string) => {
+        await removeCityFromFavorites(cityName);
+        await fetchFavoriteCities();
+        showAlert(['Cidade removida com sucesso!'], 'success');
+    };
+
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen">
-            <h1 className="text-4xl font-bold mb-4">Previsão do tempo</h1>
-            <form onSubmit={handleSubmit} className="mb-4 flex items-center">
-                <input
-                    type="text"
-                    value={city}
-                    onChange={handleInputChange}
-                    placeholder="Digite a cidade"
-                    className="border border-gray-300 rounded-md p-2"
-                    required
-                />
+        <div className="flex flex-row items-start justify-center min-h-screen">
+            <div className="flex flex-col items-center justify-center w-3/4 ml-32 mr-32">
+                <h1 className="text-4xl font-bold mb-4 mt-20">Previsão do tempo</h1>
+                <div className="flex w-full justify-between">
 
-                <div className="ml-2">
-                    <label>
-                        <input
-                            type="radio"
-                            value="oneDay"
-                            checked={forecastType === 'oneDay'}
-                            onChange={handleForecastTypeChange}
-                            className="mr-1"
-                        />
-                        1 Dia
-                    </label>
-                    <label className="ml-4">
-                        <input
-                            type="radio"
-                            value="fiveDays"
-                            checked={forecastType === 'fiveDays'}
-                            onChange={handleForecastTypeChange}
-                            className="mr-1"
-                        />
-                        5 Dias
-                    </label>
-                </div>
-
-                <button type="submit" className="ml-2 p-2 bg-blue-500 text-white rounded-md">
-                    Buscar
-                </button>
-            </form>
-
-            {loading && <p>Loading...</p>}
-            {error && <p className="text-red-500">{error}</p>}
-            {loadingFiveDays && <p>Loading waiting...</p>}
-            {errorFiveDays && <p className="text-red-500">{errorFiveDays}</p>}
-            
-            {weatherData && forecastType === 'oneDay' && (
-                <div className="mt-4">
-                    <h2 className="text-2xl">{weatherData.location.name}</h2>
-                    <p>Temperatura: {weatherData.current.tempC}°C</p>
-                    <p>Velocidade do vento: {weatherData.current.windKph} km/h</p>
-                    <p>Humidade: {weatherData.current.humidity}%</p>
-                    <p>Condição: {weatherData.current.condition.text}</p>
-                    <img src={weatherData.current.condition.icon} alt={weatherData.current.condition.text} />
-                </div>
-            )}
-
-            {weatherDataFiveDays && forecastType === 'fiveDays' && (
-                <div className="mt-4">
-                    <h2 className="text-2xl">{weatherDataFiveDays.location.name}</h2>
-                    <p>{weatherDataFiveDays.location.region}, {weatherDataFiveDays.location.country}</p>                   
-                    <div className="flex space-x-4 mt-4 overflow-x-auto">
-                        {weatherDataFiveDays.forecast.forecastDay.map((day: any, index: number) => (
-                            <div key={index} className="p-4 border rounded-lg flex-shrink-0">
-                                <p className="text-lg font-semibold">{format(new Date(day.date), 'dd/MM/yyyy')}</p>
-                                <p>Temperatura máxima: {day.day.maxTempC}°C</p>
-                                <p>Temperatura mínima: {day.day.minTempC}°C</p>
-                                <p>Temperatura média: {day.day.avgTempC}°C</p>
-                                <p>Condição: {day.day.condition.text}</p>
-                                <img src={day.day.condition.icon} alt={day.day.condition.text} />
+                    <div>
+                        <form onSubmit={handleSubmit} className="mb-4 flex items-center w-2/3 relative">
+                            <input
+                                type="text"
+                                value={city}
+                                onChange={handleInputChange}
+                                placeholder="Digite a cidade"
+                                className="border border-gray-300 rounded-md p-2 pr-10"
+                                required
+                            />
+                            <div className="ml-2 flex items-center">
+                                <label className="flex items-center mr-4 whitespace-nowrap">
+                                    <input
+                                        type="radio"
+                                        value="oneDay"
+                                        checked={forecastType === 'oneDay'}
+                                        onChange={handleForecastTypeChange}
+                                        className="mr-1"
+                                    />
+                                    1 Dia
+                                </label>
+                                <label className="flex items-center whitespace-nowrap">
+                                    <input
+                                        type="radio"
+                                        value="fiveDays"
+                                        checked={forecastType === 'fiveDays'}
+                                        onChange={handleForecastTypeChange}
+                                        className="mr-1"
+                                    />
+                                    5 Dias
+                                </label>
                             </div>
-                        ))}
+
+                            <button type="submit" className="ml-2 p-2 bg-blue-500 text-white rounded-md">
+                                Buscar
+                            </button>
+                            {city && (
+                                <button
+                                    onClick={handleFavoriteClick}
+                                    className="ml-2 p-2 bg-black text-white rounded-md min-w-[200px]"
+                                    disabled={addingFavorite || !city}
+                                >
+                                    {addingFavorite ? 'Adicionando...' : 'Adicionar aos Favoritos'}
+                                </button>
+                            )}
+                        </form>
+                        {loading && <p>Loading...</p>}
+                        {error && <p className="text-red-500">{error}</p>}
+                        {loadingFiveDays && <p>Loading...</p>}
+                        {errorFiveDays && <p className="text-red-500">{errorFiveDays}</p>}
+                        {favoriteError && <p className="text-red-500">{favoriteError}</p>}
+
+                        {weatherData && forecastType === 'oneDay' && (
+                            <div className="mt-4">
+                                <h2 className="text-2xl">{weatherData.location.name}</h2>
+                                <p>Temperatura: {weatherData.current.tempC}°C</p>
+                                <p>Velocidade do vento: {weatherData.current.windKph} km/h</p>
+                                <p>Humidade: {weatherData.current.humidity}%</p>
+                                <p>Condição: {weatherData.current.condition.text}</p>
+                                <img src={weatherData.current.condition.icon} alt={weatherData.current.condition.text} />
+                            </div>
+                        )}
+
+                        {weatherDataFiveDays && forecastType === 'fiveDays' && (
+                            <div className="mt-4">
+                                <h2 className="text-2xl">{weatherDataFiveDays.location.name}</h2>
+                                <p>{weatherDataFiveDays.location.region}, {weatherDataFiveDays.location.country}</p>
+                                <div className="flex space-x-4 mt-4 overflow-x-auto">
+                                    {weatherDataFiveDays.forecast.forecastDay.map((day: any, index: number) => (
+                                        <div key={index} className="p-4 border rounded-lg flex-shrink-0">
+                                            <p className="text-lg font-semibold">{format(new Date(day.date), 'dd/MM/yyyy')}</p>
+                                            <p>Temperatura máxima: {day.day.maxTempC}°C</p>
+                                            <p>Temperatura mínima: {day.day.minTempC}°C</p>
+                                            <p>Condição: {day.day.condition.text}</p>
+                                            <img src={day.day.condition.icon} alt={day.day.condition.text} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <div className="w-1/3 bg-gray-100 p-4 rounded-lg shadow-md ml-4">
+                        <h2 className="text-xl font-bold mb-4">Cidades Favoritas</h2>
+
+                        {loadingFavorites ? (
+                            <p>Carregando...</p>
+                        ) : errorFavorites ? (
+                            <p className="text-red-500">{errorFavorites}</p>
+                        ) : favoriteCities.length === 0 ? (
+                            <p>Não existem cidades ainda</p>
+                        ) : (
+                            <ul>
+                                {favoriteCities.map((city, index) => (
+                                    <li key={index} className="border-b p-2 flex justify-between items-center">
+                                        {city}
+                                        <AiFillDelete
+                                            onClick={() => handleRemoveFavorite(city)}
+                                            className="text-red-500 cursor-pointer ml-2"
+                                            title="Remover cidade favorita"
+                                        />
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
                 </div>
-            )}
-
+            </div>
         </div>
     );
 }

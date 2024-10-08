@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { registerUser } from '../services/http_client/register_user_http';
-import { AuthResponse } from '../models/AuthResponse';
+import { registerUser } from '../../services/http_client/User/register_user_http';
+import { AuthResponse } from '../../models/User/AuthResponse';
 
 export const useRegister = () => {
     const [error, setError] = useState<string | null>(null);

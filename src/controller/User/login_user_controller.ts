@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { AuthResponse } from '../models/AuthResponse';
-import { loginUser } from '../services/http_client/login_user_http';
+import { loginUser } from '../../services/http_client/User/login_user_http';
+import { AuthResponse } from '../../models/User/AuthResponse';
 
 export const userLogin = () => {
     const [error, setError] = useState<string | null>(null);

@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { AuthResponse } from "../../models/AuthResponse";
 import { getAuthData } from "../core/auth_core";
-import { userLogin } from '../../controller/login_user_controller';
+import { userLogin } from '../../controller/User/login_user_controller';
 import { Loading } from "../../components/loading";
+import { AuthResponse } from "../../models/User/AuthResponse";
 
 
 const rawAuthResponse = localStorage.getItem('UserAuthData');
@@ -42,6 +42,8 @@ export function AuthProvider(params: { children: React.ReactNode }) {
 			_setauthResponse(null);
 		}
 	}
+
+	
 
 	async function loginUser(email: string, password: string): Promise<void> {
 		let response:AuthResponse | undefined = await login(email, password);			

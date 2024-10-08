@@ -5,7 +5,7 @@ import { Button } from '../../components/button';
 import { Card } from '../../components/card';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { userLogin } from '../../controller/login_user_controller';
+import { userLogin } from '../../controller/User/login_user_controller';
 import { UseAuth } from '../../services/context/auth';
 
 

@@ -1,4 +1,4 @@
-import { AuthResponse } from "../../models/AuthResponse";
+import { AuthResponse } from "../../models/User/AuthResponse";
 
 export function getAuthData() {
 	let authData: AuthResponse = getUserAuthData();	

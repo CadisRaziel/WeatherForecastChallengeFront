@@ -4,7 +4,7 @@ import { Input } from '../../components/input';
 import { Button } from '../../components/button';
 import { Card } from '../../components/card';
 import { Link, useNavigate } from 'react-router-dom';
-import { useRegister } from '../../controller/register_user_controller';
+import { useRegister } from '../../controller/User/register_user_controller';
 import { z } from 'zod';
 
 
@@ -19,7 +19,7 @@ const registerSchema = z.object({
 
 export default function RegisterNewAccount() {
     const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Novo estado para confirmar a senha
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false); 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -96,7 +96,7 @@ export default function RegisterNewAccount() {
                     <Input
                         isRequired={true}
                         label="Confirme a senha"
-                        type={showConfirmPassword ? 'text' : 'password'} // Alterado para usar o novo estado
+                        type={showConfirmPassword ? 'text' : 'password'}
                         placeholder="Confirme sua senha"
                         icon={
                             <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>

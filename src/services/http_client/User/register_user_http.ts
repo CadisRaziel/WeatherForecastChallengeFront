@@ -1,9 +1,10 @@
-import { AuthResponse } from '../../models/AuthResponse';
+import { AuthResponse } from "../../../models/User/AuthResponse";
+
 
 const API_URL = 'https://localhost:7226/api/Auth';
 
 export const registerUser = async (email: string, password: string, confirmPassword: string): Promise<AuthResponse> => {
-    console.log("antes do response");
+
     const response = await fetch(`${API_URL}/Register`, {
         method: 'POST',
         headers: {
@@ -12,12 +13,10 @@ export const registerUser = async (email: string, password: string, confirmPassw
         body: JSON.stringify({ email, password, confirmPassword }),
     });
 
-    console.log(response);
-
     if (!response.ok) {
         console.log("Deu errado");
-        throw new Error('Failed to register user');
+        throw new Error('Falha no registro do usuario');
     }
-    console.log("Deu certo");
+
     return response.json();
 };

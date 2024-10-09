@@ -21,7 +21,7 @@ export default function Dashboard() {
     const { addCityToFavorites, loading: addingFavorite, error: favoriteError } = addFavoriteCitiesController();
     const { loading: loadingFavorites, error: errorFavorites, favoriteCities, fetchFavoriteCities, removeCityFromFavorites } = useFavoriteCitiesController();
     const { showAlert } = useAlert();
-    const { logoutUser } = UseAuth(); 
+    const { logoutUser } = UseAuth();
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -54,7 +54,7 @@ export default function Dashboard() {
     };
 
     const handleLogout = async () => {
-        await logoutUser(); 
+        await logoutUser();
     };
 
     return (
@@ -71,22 +71,30 @@ export default function Dashboard() {
                 </div>
                 <div className="flex w-full justify-between">
                     <div>
-                        <form onSubmit={handleSubmit} >
-                            <GooglePlacesAutocomplete
-                                apiKey="AIzaSyCaOIpXR8urLwxDHFt2oGdZ4zk8yrmhKMc"
-                                selectProps={{
-                                    value: city ? { label: city, value: city } : null,
-                                    onChange: (value) => {
-                                        const rawCity = value?.label || '';
-                                        const normalizedCity = rawCity.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                                        const cityName = normalizedCity.split(',')[0].trim() || '';
-                                        setCity(cityName);
-                                    },
-                                    placeholder: "Digite a cidade",
-                                    className: "rounded-md w-96",
-                                    required: true,
-                                }}
-                            />
+                        <form onSubmit={handleSubmit}>
+                            <div className="flex items-center mb-2">
+                                <GooglePlacesAutocomplete
+                                    apiKey="AIzaSyCaOIpXR8urLwxDHFt2oGdZ4zk8yrmhKMc"
+                                    selectProps={{
+                                        value: city ? { label: city, value: city } : null,
+                                        onChange: (value) => {
+                                            const rawCity = value?.label || '';
+                                            const normalizedCity = rawCity.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                                            const cityName = normalizedCity.split(',')[0].trim() || '';
+                                            setCity(cityName);
+                                        },
+                                        placeholder: "Digite a cidade",
+                                        className: "rounded-md w-96",
+                                        required: true,
+                                    }}
+                                />
+                                <button
+                                    type="submit"
+                                    className="ml-2 p-2 bg-blue-500 text-white rounded-md"
+                                >
+                                    Buscar
+                                </button>
+                            </div>
                             <div className="mt-2 flex items-center">
                                 <label className="flex items-center mr-4 whitespace-nowrap">
                                     <input
@@ -110,19 +118,18 @@ export default function Dashboard() {
                                 </label>
                             </div>
 
-                            <button type="submit" className="mt-2 p-2 bg-blue-500 text-white rounded-md">
-                                Buscar
-                            </button>
                             {city && (
                                 <button
                                     onClick={handleFavoriteClick}
-                                    className="ml-2 p-2 bg-black text-white rounded-md min-w-[200px]"
+                                    className="mt-2 p-2 bg-black text-white rounded-md min-w-[200px]"
                                     disabled={addingFavorite || !city}
                                 >
-                                    {addingFavorite ? 'Adicionando...' : 'Adicionar aos Favoritos'}
+                                    {addingFavorite ? 'Adicionando...' : 'Adicionar cidade aos Favoritos'}
                                 </button>
                             )}
+
                         </form>
+
                         {loading && <p>Loading...</p>}
                         {error && <p className="text-red-500">{error}</p>}
                         {loadingFiveDays && <p>Loading...</p>}
@@ -134,8 +141,9 @@ export default function Dashboard() {
                                 <img
                                     src={weatherData.current.condition.icon}
                                     alt={weatherData.current.condition.text}
-                                    className="w-20 h-20 absolute top-0 right-4"
+                                    className={`w-20 h-20 absolute top-0 right-4 ${weatherData.current.condition.text === 'Sunny' ? 'animate-spin' : 'animate-pulse'}`}
                                 />
+
                                 <h2 className="text-2xl">{weatherData.location.name}</h2>
                                 <p>Temperatura: {weatherData.current.tempC}°C</p>
                                 <p>Velocidade do vento: {weatherData.current.windKph} km/h</p>
@@ -145,54 +153,58 @@ export default function Dashboard() {
                         )}
 
                         {weatherDataFiveDays && forecastType === 'fiveDays' && (
-                      <Card className="mt-4"> 
-                      <h2 className="text-2xl">{weatherDataFiveDays.location.name}</h2>
-                      <p>{weatherDataFiveDays.location.region}, {weatherDataFiveDays.location.country}</p>
-                      <div className="flex space-x-4 mt-4 overflow-x-auto">
-                          {weatherDataFiveDays.forecast.forecastDay.map((day: any, index: number) => (
-                              <div key={index} className="p-4 border rounded-lg flex-shrink-0 flex flex-col items-center"> 
-                                  <p className="text-lg font-semibold">{format(parseISO(day.date), 'dd/MM/yyyy')}</p>
-                                  <img src={day.day.condition.icon} alt={day.day.condition.text} className="mb-2" /> 
-                                  <p>Temperatura máxima: {day.day.maxTempC}°C</p>
-                                  <p>Temperatura mínima: {day.day.minTempC}°C</p>
-                                  <p>Condição: {day.day.condition.text}</p>
-                              </div>
-                          ))}
-                      </div>
-                  </Card>
-                  
-                      
+                            <Card className="mt-4">
+                                <h2 className="text-2xl">{weatherDataFiveDays.location.name}</h2>
+                                <p>{weatherDataFiveDays.location.region}, {weatherDataFiveDays.location.country}</p>
+                                <div className="flex space-x-4 mt-4 overflow-x-auto">
+                                    {weatherDataFiveDays.forecast.forecastDay.map((day: any, index: number) => (
+                                        <div key={index} className="p-4 border rounded-lg flex-shrink-0 flex flex-col items-center">
+                                            <p className="text-lg font-semibold">{format(parseISO(day.date), 'dd/MM/yyyy')}</p>
+                                            <img
+                                                src={day.day.condition.icon}
+                                                alt={day.day.condition.text}
+                                                className={`mb-2 ${day.day.condition.text === 'Sunny' ? 'animate-spin' : 'animate-pulse'}`}
+                                            />
+                                            <p>Temperatura máxima: {day.day.maxTempC}°C</p>
+                                            <p>Temperatura mínima: {day.day.minTempC}°C</p>
+                                            <p>Condição: {day.day.condition.text}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </Card>
+
+
                         )}
                     </div>
-                    
+
 
                 </div>
-                <Card className=" bg-gray-100 mt-8"> 
-                        <h2 className="text-xl font-bold mb-4 text-center"> 
-                            Cidades Favoritas
-                        </h2>
+                <Card className=" bg-gray-100 mt-8">
+                    <h2 className="text-xl font-bold mb-4 text-center">
+                        Cidades Favoritas
+                    </h2>
 
-                        {loadingFavorites ? (
-                            <p>Carregando...</p>
-                        ) : errorFavorites ? (
-                            <p className="text-red-500">{errorFavorites}</p>
-                        ) : favoriteCities.length === 0 ? (
-                            <p>Não existem cidades ainda</p>
-                        ) : (
-                            <ul>
-                                {favoriteCities.map((city, index) => (
-                                    <li key={index} className="border-b p-2 flex justify-between items-center">
-                                        {city}
-                                        <AiFillDelete
-                                            onClick={() => handleRemoveFavorite(city)}
-                                            className="text-red-500 cursor-pointer ml-2"
-                                            title="Remover cidade favorita"
-                                        />
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </Card>
+                    {loadingFavorites ? (
+                        <p>Carregando...</p>
+                    ) : errorFavorites ? (
+                        <p className="text-red-500">{errorFavorites}</p>
+                    ) : favoriteCities.length === 0 ? (
+                        <p>Não existem cidades ainda</p>
+                    ) : (
+                        <ul>
+                            {favoriteCities.map((city, index) => (
+                                <li key={index} className="border-b p-2 flex justify-between items-center">
+                                    {city}
+                                    <AiFillDelete
+                                        onClick={() => handleRemoveFavorite(city)}
+                                        className="text-red-500 cursor-pointer ml-2"
+                                        title="Remover cidade favorita"
+                                    />
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </Card>
             </div>
         </div>
     );

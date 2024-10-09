@@ -7,45 +7,41 @@ import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { userLogin } from '../../controller/User/login_user_controller';
 import { UseAuth } from '../../services/context/auth';
-
+import { useAlert } from '../../components/alert';
 
 const registerSchema = z.object({
-    email: z.string().email({message: "Email ou Senha inválido"}),
-    password: z.string().min(6, {message:"Email ou Senha inválido"}),
-    
+    email: z.string().email({ message: "Email ou Senha inválido" }),
+    password: z.string().min(6, { message: "Email ou Senha inválido" }),
 });
 
 export default function SignIn() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-	const {error, loading } = userLogin();
-    const [errorMessage, setErrorMessage] = useState('');
+    const { error, loading } = userLogin();
     const navigate = useNavigate();
-	const auth = UseAuth();
+    const auth = UseAuth();
+    const { showAlert } = useAlert();
 
     const handleSubmit = async () => {
-       // e.preventDefault();        
-        
         const result = registerSchema.safeParse({ email, password });
-        console.log(result);
-        setErrorMessage(result.error?.message!)
-        console.log(result.error?.message!)
-        if (!result.success) {           
-           // alert(result.error.errors.map(err => err.message).join(", "));
+
+        if (!result.success) {
+
+            showAlert(result.error.errors.map(err => err.message), 'error');
             return;
         }
+
         try {
-            console.log("Tentando");
             await auth.loginUser(email, password);
-            // alert('Registro realizado com sucesso!');
-            navigate('/dashboard'); 
-        } catch (err) {           
-            console.log("Deu errado");
-            setErrorMessage( err instanceof Error ? err.message : 'Erro ao registrar' )   ;        
-            console.log(errorMessage)
+
+            showAlert(['Login realizado com sucesso!'], 'success');
+            navigate('/dashboard');
+        } catch (err) {
+
+            showAlert([err instanceof Error ? err.message : 'Erro ao realizar login'], 'error');
         }
-    };   
+    };
 
     return (
         <div className="flex items-center justify-center min-h-screen">
@@ -57,7 +53,7 @@ export default function SignIn() {
                 <form
                     className="mx-6 flex w-full flex-col gap-7 sm:mx-16 lg:mx-20"
                     onSubmit={handleSubmit}
-                >                  
+                >
                     <Input
                         isRequired={true}
                         label="E-mail"
@@ -67,10 +63,7 @@ export default function SignIn() {
                         isEmail={true}
                         value={email}
                         setValue={setEmail}
-                        errorMessage={"oaisdoisa"}                        
-                        
-                    />                   
-
+                    />
                     <Input
                         isRequired={true}
                         label="Senha"
@@ -87,14 +80,15 @@ export default function SignIn() {
                         }
                         value={password}
                         setValue={setPassword}
-                        errorMessage={errorMessage}
-                    />                    
+                    />
                     <div className="flex justify-end items-end mr-2">
                         <Link to="/register">
                             <h6>Nao possui uma conta? Registre-se!</h6>
                         </Link>
                     </div>
-                    <Button onClick={handleSubmit}  disabled={loading}>{loading ? 'Carregando...' : 'Registrar'}</Button>                    
+                    <Button onClick={handleSubmit} disabled={loading}>
+                        {loading ? 'Carregando...' : 'Entrar'}
+                    </Button>
                     {error && <div className="text-red-500">{error}</div>}
                 </form>
             </Card>

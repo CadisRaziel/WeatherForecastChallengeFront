@@ -6,50 +6,51 @@ import { Card } from '../../components/card';
 import { Link, useNavigate } from 'react-router-dom';
 import { useRegister } from '../../controller/User/register_user_controller';
 import { z } from 'zod';
-
+import { useAlert } from '../../components/alert';
 
 const registerSchema = z.object({
-    email: z.string().email({message: "Email inválido"}),
-    password: z.string().min(6, {message:"A senha deve ter pelo menos 6 caracteres"}),
-    confirmPassword: z.string().min(6, {message: "A confirmação da senha deve ter pelo menos 6 caracteres"}),
+    email: z.string().email({ message: "Email inválido" }),
+    password: z.string()
+        .min(6, { message: "A senha deve ter pelo menos 6 caracteres com 1 caracter maiúsculo, letras e números" })
+        .regex(/[A-Z]/, { message: "A senha deve conter pelo menos 1 caracter maiúsculo" })
+        .regex(/[0-9]/, { message: "A senha deve conter pelo menos 1 número" })
+        .regex(/[^A-Za-z0-9]/, { message: "A senha deve conter pelo menos 1 caracter especial" }),
+    confirmPassword: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
     message: "As senhas não correspondem",
     path: ["confirmPassword"],
 });
 
+
+
 export default function RegisterNewAccount() {
     const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false); 
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const { register, error, loading } = useRegister();
-    const [errorMessage, setErrorMessage] = useState('');
+    const { showAlert } = useAlert();
     const navigate = useNavigate();
 
     const handleSubmit = async () => {
-       // e.preventDefault();        
-        
         const result = registerSchema.safeParse({ email, password, confirmPassword });
-        console.log(result);
-        setErrorMessage(result.error?.message!)
-        console.log(result.error?.message!)
-        if (!result.success) {           
-           // alert(result.error.errors.map(err => err.message).join(", "));
+        if (!result.success) {
+
+            showAlert(result.error.errors.map(err => err.message), 'error');
             return;
         }
 
         try {
-            console.log("Tentando");
             await register(email, password, confirmPassword);
-            // alert('Registro realizado com sucesso!');
-            navigate('/'); 
-        } catch (err) {           
-            console.log("Deu errado");
-            setErrorMessage( err instanceof Error ? err.message : 'Erro ao registrar' )   ;        
-            console.log(errorMessage)
+
+            showAlert(['Registro realizado com sucesso!'], 'success');
+            navigate('/');
+        } catch (err) {
+
+            showAlert([err instanceof Error ? err.message : 'Erro ao registrar'], 'error');
         }
-    };   
+    };
 
     return (
         <div className="flex items-center justify-center min-h-screen">
@@ -61,7 +62,7 @@ export default function RegisterNewAccount() {
                 <form
                     className="mx-6 flex w-full flex-col gap-7 sm:mx-16 lg:mx-20"
                     onSubmit={handleSubmit}
-                >                  
+                >
                     <Input
                         isRequired={true}
                         label="E-mail"
@@ -71,10 +72,7 @@ export default function RegisterNewAccount() {
                         isEmail={true}
                         value={email}
                         setValue={setEmail}
-                        errorMessage={"oaisdoisa"}                        
-                        
-                    />                   
-
+                    />
                     <Input
                         isRequired={true}
                         label="Senha"
@@ -91,7 +89,6 @@ export default function RegisterNewAccount() {
                         }
                         value={password}
                         setValue={setPassword}
-                        errorMessage={errorMessage}
                     />
                     <Input
                         isRequired={true}
@@ -109,14 +106,15 @@ export default function RegisterNewAccount() {
                         }
                         value={confirmPassword}
                         setValue={setConfirmPassword}
-                        errorMessage={errorMessage}
                     />
                     <div className="flex justify-end items-end mr-2">
                         <Link to="/">
                             <h6>Já tem uma conta? Faça o login!</h6>
                         </Link>
                     </div>
-                    <Button onClick={handleSubmit}  disabled={loading}>{loading ? 'Carregando...' : 'Registrar'}</Button>                    
+                    <Button onClick={handleSubmit} disabled={loading}>
+                        {loading ? 'Carregando...' : 'Registrar'}
+                    </Button>
                     {error && <div className="text-red-500">{error}</div>}
                 </form>
             </Card>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import GooglePlacesAutocomplete from 'react-google-places-autocomplete'; 
 import { useWeatherForecastController } from '../../controller/Forecast/weatherForecast_one_day_controller';
 import { useWeatherForecastControllerFiveDays } from '../../controller/Forecast/weatherForecast_five_days_controller';
 import { format } from 'date-fns/format';
@@ -6,6 +7,8 @@ import { addFavoriteCitiesController } from '../../controller/FavoriteCities/add
 import { useFavoriteCitiesController } from '../../controller/FavoriteCities/list_favorite_cities_controller';
 import { useAlert } from '../../components/alert';
 import { AiFillDelete } from 'react-icons/ai';
+import { parseISO } from 'date-fns/parseISO';
+import { Card } from '../../components/card';
 
 export default function Dashboard() {
     const [city, setCity] = useState<string>('');
@@ -16,10 +19,6 @@ export default function Dashboard() {
     const { addCityToFavorites, loading: addingFavorite, error: favoriteError } = addFavoriteCitiesController();
     const { loading: loadingFavorites, error: errorFavorites, favoriteCities, fetchFavoriteCities, removeCityFromFavorites } = useFavoriteCitiesController();
     const { showAlert } = useAlert();
-
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setCity(event.target.value);
-    };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -52,22 +51,29 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="flex flex-row items-start justify-center min-h-screen">
+        <div className="flex flex-row items-start justify-center min-h-screen ">
             <div className="flex flex-col items-center justify-center w-3/4 ml-32 mr-32">
                 <h1 className="text-4xl font-bold mb-4 mt-20">Previsão do tempo</h1>
                 <div className="flex w-full justify-between">
 
                     <div>
-                        <form onSubmit={handleSubmit} className="mb-4 flex items-center w-2/3 relative">
-                            <input
-                                type="text"
-                                value={city}
-                                onChange={handleInputChange}
-                                placeholder="Digite a cidade"
-                                className="border border-gray-300 rounded-md p-2 pr-10"
-                                required
+                        <form onSubmit={handleSubmit} >
+                            <GooglePlacesAutocomplete
+                                apiKey="AIzaSyCaOIpXR8urLwxDHFt2oGdZ4zk8yrmhKMc"
+                                selectProps={{
+                                    value: city ? { label: city, value: city } : null,
+                                    onChange: (value) => {                                        
+                                        const rawCity = value?.label || '';
+                                        const normalizedCity = rawCity.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); 
+                                        const cityName = normalizedCity.split(',')[0].trim() || '';
+                                        setCity(cityName);
+                                    },
+                                    placeholder: "Digite a cidade",
+                                    className: "rounded-md w-96",
+                                    required: true,
+                                }}
                             />
-                            <div className="ml-2 flex items-center">
+                            <div className="mt-2 flex items-center">
                                 <label className="flex items-center mr-4 whitespace-nowrap">
                                     <input
                                         type="radio"
@@ -90,7 +96,7 @@ export default function Dashboard() {
                                 </label>
                             </div>
 
-                            <button type="submit" className="ml-2 p-2 bg-blue-500 text-white rounded-md">
+                            <button type="submit" className="mt-2 p-2 bg-blue-500 text-white rounded-md">
                                 Buscar
                             </button>
                             {city && (
@@ -110,14 +116,19 @@ export default function Dashboard() {
                         {favoriteError && <p className="text-red-500">{favoriteError}</p>}
 
                         {weatherData && forecastType === 'oneDay' && (
-                            <div className="mt-4">
-                                <h2 className="text-2xl">{weatherData.location.name}</h2>
-                                <p>Temperatura: {weatherData.current.tempC}°C</p>
-                                <p>Velocidade do vento: {weatherData.current.windKph} km/h</p>
-                                <p>Humidade: {weatherData.current.humidity}%</p>
-                                <p>Condição: {weatherData.current.condition.text}</p>
-                                <img src={weatherData.current.condition.icon} alt={weatherData.current.condition.text} />
-                            </div>
+                      <Card className="mt-4 relative">
+                      <img 
+                          src={weatherData.current.condition.icon} 
+                          alt={weatherData.current.condition.text} 
+                          className="w-20 h-20 absolute top-0 right-4" 
+                      />
+                      <h2 className="text-2xl">{weatherData.location.name}</h2>
+                      <p>Temperatura: {weatherData.current.tempC}°C</p>
+                      <p>Velocidade do vento: {weatherData.current.windKph} km/h</p>
+                      <p>Humidade: {weatherData.current.humidity}%</p>
+                      <p>Condição: {weatherData.current.condition.text}</p>
+                  </Card>
+                  
                         )}
 
                         {weatherDataFiveDays && forecastType === 'fiveDays' && (
@@ -126,8 +137,10 @@ export default function Dashboard() {
                                 <p>{weatherDataFiveDays.location.region}, {weatherDataFiveDays.location.country}</p>
                                 <div className="flex space-x-4 mt-4 overflow-x-auto">
                                     {weatherDataFiveDays.forecast.forecastDay.map((day: any, index: number) => (
+                                        
                                         <div key={index} className="p-4 border rounded-lg flex-shrink-0">
-                                            <p className="text-lg font-semibold">{format(new Date(day.date), 'dd/MM/yyyy')}</p>
+                                             <p className="text-lg font-semibold">{format(parseISO(day.date), 'dd/MM/yyyy')}</p>
+                                             
                                             <p>Temperatura máxima: {day.day.maxTempC}°C</p>
                                             <p>Temperatura mínima: {day.day.minTempC}°C</p>
                                             <p>Condição: {day.day.condition.text}</p>

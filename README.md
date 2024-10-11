@@ -5,8 +5,7 @@
 Primeiro, clone o repositório para sua máquina local:
 
 ```bash
-git clone <URL_DO_REPOSITORIO>
-cd <NOME_DO_REPOSITORIO>
+git clone [<URL_DO_REPOSITORIO>](https://github.com/CadisRaziel/WeatherForecastChallengeFront)
 ```
 
 ### 2. instalar as dependencias
